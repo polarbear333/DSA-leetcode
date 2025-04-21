@@ -10,7 +10,155 @@ To Computer Scientists, _randomness_ is essential to a special class of algori
 
 In the context of data structures specifically, _randomness_ is essential to a special class of data structures known as **Randomized Data Structures**, which are data structures that incorporate some form of random input to determine their structure and data organization, which in turn affects their performance in finding, inserting, and removing elements.
 
+While we used the vague term _randomness_ above, but we can be more concrete and specify that these are all applications of **random number generation**. For example, 
+* rolling a _k_-sided die can be considered equivalent to generating a random number from 1 to _k_,
+* flipping a coin can be considered equivalent to generating a random number that can only be 0 or 1, etc.
 
+Even with **Randomized Algorithms** and **Randomized Data Structures**, any applied randomness can be broken down into randomly generating numbers.
+
+---
+##  True vs. Pseudo Random Number Generation
+
+### 🎲 What is True Randomness?
+
+- **True random numbers** are generated from physical phenomena that are inherently unpredictable (high entropy).
+    
+- Common physical sources of randomness include:
+    
+    - Atmospheric noise
+        
+    - Thermal noise
+        
+    - Quantum effects
+        
+- These sources introduce **natural entropy** (disorder) into the system.
+    
+
+### Why is True Randomness Slow?
+
+- Entropy harvesting is limited by the **speed of physical measurement**.
+    
+- This process is **blocking** — the system must wait until enough entropy is collected.
+    
+- As a result, **true random number generation is slow** compared to modern processor speeds.
+    
+
+---
+
+### Pseudo-Random Number Generation (PRNG)
+
+- **Pseudo-random numbers** are generated algorithmically using a starting value called a **seed**.
+    
+- Given the same seed, the PRNG will always produce the **same sequence** of numbers.
+    
+- PRNGs appear random, but are actually **fully deterministic**.
+    
+
+#### Example:
+
+> Seed: `42`  
+> → Generates a sequence of numbers that looks random.  
+> → Reseeding with `42` will regenerate the **same sequence** every time.
+
+### 🚀 Speed Advantage
+
+- PRNGs are **much faster** than true RNGs.
+    
+- Not bound by physical limits, they are ideal for simulations, games, and non-cryptographic applications.
+    
+
+## 🔁 Hybrid Random Number Generation (True + Pseudo)
+
+### ⚡ Combining Both Approaches
+
+- We can seed a **pseudo-random number generator (PRNG)** using a **true random number**.
+    
+- This provides both:
+    
+    - Speed (thanks to PRNG)
+        
+    - Unpredictability (thanks to true entropy)
+        
+- This hybrid method is practical for many real-world applications.
+    
+
+### 🧊 Example: Thermal Noise as True Random Seed
+
+1. Measure a physical source of randomness (e.g., thermal noise).
+    
+2. Use this to seed the PRNG.
+    
+3. Each execution produces a different sequence of numbers since the seed changes.
+    
+
+> 📌 Only one true random number is needed to seed the PRNG, making this method efficient and non-blocking.
+
+---
+
+## 🎲 Random Number Generation in C++
+
+### 🔢 `rand()` and `srand()`
+
+- `rand()` generates a random number in `[0, RAND_MAX]`.
+    
+- `srand()` is used to seed the random number generator.
+    
+
+```cpp
+#include <cstdlib>
+#include <ctime>
+
+srand(time(NULL));   // seed random number generator using system time
+int number = rand(); // generate random number from 0 through RAND_MAX
+```
+
+### 🎚️ Custom Ranges Using Modulo
+
+Generate a number from 0 to 99:
+
+```cpp
+int number = rand() % 100; // outputs 0-99
+```
+
+Generate a number from 1 to 100:
+
+```cpp
+int number = (rand() % 100) + 1; // outputs 1-100
+```
+
+### 📦 Sampling from a Vector
+
+```cpp
+#include <vector>
+#include <string>
+using namespace std;
+
+vector<string> myVec;
+// populate myVec
+int index = rand() % myVec.size(); // random index
+string element = myVec[index];    // retrieve element
+```
+
+---
+
+## 📊 Beyond Uniform Distributions
+
+- The examples above are all **Uniform Distribution** (equal probability).
+    
+- With more techniques, we can sample from:
+    
+    - Gaussian
+        
+    - Exponential
+        
+    - Poisson
+        
+- These advanced distributions are built upon uniform sampling.
+    
+
+> 🧠 All random sampling can be **reduced to uniform sampling** + transformation.
+
+---
 
 # Recursion and Dynamic Programming
 
