@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import Generics.Node;
 
 
@@ -99,6 +101,149 @@ public class BinarySearchTree<T extends Comparable<T>>{
         }
         return current;
     }
+
+    // Find Minimum value 
+
+    public T findMin(){
+        if(this.root == null){
+            throw new IllegalStateException("Tree is empty");
+        }  
+        return findMinHelper(this.root);
+    }   
+
+    private T findMinHelper(Node<T> current){
+        while (current.getLeft() != null){
+            current.getLeft();
+        }
+        return current.getData();
+    }
+
+    // Find Max
+    public T findMax(){
+        if(this.root == null){
+            throw new IllegalStateException("Tree is empty");
+        }
+        return findMaxHelper(this.root);
+    }
+
+    private T findMaxHelper(Node<T> current){
+        while(current.getRight() != null){
+            current = current.getRight();
+        }
+        return current.getData();
+    }
+
+    //Find Height
+    public int findHeight(){
+        return findHeightHelper(this.root);
+    }
+
+    private int findHeightHelper(Node<T> current){
+        // Base case: return -1 if tree is null;
+        if(current == null){
+            return -1;
+        }
+        // Get the left subtree recursively, call height(node->left);
+        int lHeight = findHeightHelper(current.getLeft());
+
+        // Get the right subtree recursively, call height(node->right);
+        int rHeight = findHeightHelper(current.getRight());
+
+        return Math.max(lHeight, rHeight) + 1;
+    }
+
+    public int findHeightTraversal(){
+        return findHeightTraversalHelper(this.root);
+    }
+
+    private int findHeightTraversalHelper(Node<T> root){
+        if(root == null){
+            return 0;
+        }
+        
+        //Initialize a queue to traverse the tree level by level
+        Queue<Node<T>> queue = new LinkedList<>();
+        queue.add(root);
+        int depth = 0;
+        
+        //Loop until queue is empty
+        while(!queue.isEmpty()){
+            int levelSize = queue.size();
+
+            //Traverse all nodes at current level
+            for(int i=0; i<levelSize; i++){
+                Node<T> current = queue.poll();
+                if(current.getLeft() != null){
+                    queue.add(current.getLeft());
+                }
+
+                if(current.getRight() != null){
+                    queue.add(current.getRight());
+                }
+            }
+            depth++;
+        }
+        return depth - 1;
+    }
+
+    // count total number of nodes
+    public int countNodes(){
+        return countNodesHelper(this.root);
+    }
+
+    private int countNodesHelper(Node<T> current){
+        if(current == null){
+            return 0;
+        }
+        int l = countNodesHelper(current.getLeft());
+        int r = countNodesHelper(current.getRight());
+
+        return l + r + 1; //+1 for root node
+    }
+
+    // count total number of leaf node
+    public int countLeafNodes(){
+       return countLeafNodesHelper(this.root); 
+    }
+
+    private int countLeafNodesHelper(Node<T> current){
+        if(current == null){
+            return 0;
+        }
+        if(current.getLeft() == null && current.getRight() == null){
+            return 1;
+        }
+        return countLeafNodesHelper(current.getLeft()) + countLeafNodesHelper(current.getRight());
+    }
+
+    public int countLeafNodesIterative(){
+        return countLeafNodesIterativeHelper(this.root);
+    }
+
+    private int countLeafNodesIterativeHelper(Node<T> rootNode){
+        if(rootNode == null){
+            return 0;
+        }
+
+        Queue<Node<T>> queue = new LinkedList<>();
+        queue.add(rootNode);
+        int count = 0;
+
+        //traverse the current node
+        while(!queue.isEmpty()){
+            Node<T> current = queue.poll();
+            if(current.getLeft() == null && current.getRight() == null){
+                count++;
+            }
+            if(current.getLeft() != null){
+                queue.add(current.getLeft());
+            }
+            if(current.getRight() != null){
+                queue.add(current.getRight());
+            }
+        }
+        return count;
+    }   
 
     // In-order traversal
     public List<T> inOrderTraversal(){
