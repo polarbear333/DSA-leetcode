@@ -1,6 +1,6 @@
 # DSA-LeetCode
 
-My personal learning journey for Data Structures and Algorithms with implementations and LeetCode problem solutions, updated occasional updates as I continue learning and practicing.
+My personal learning journey for Data Structures and Algorithms with implementations and LeetCode problem solutions, updated occasionally as I continue learning and practicing.
 
 ## About This Repository
 - My personal learning path and notes for DSA concepts
