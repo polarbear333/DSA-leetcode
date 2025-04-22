@@ -8,6 +8,11 @@
  * End state: grid[m-1][n-1]
  */
 // @lc code=start
+#include <iostream>
+#include <stdint.h>
+#include <Windows.h>
+#include <algorithm> // For the min function
+
 class Solution {
 /*
 By observation, total possible steps are (m-1)+(n-1) = (m+n-2),
