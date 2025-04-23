@@ -299,9 +299,159 @@ In summary, the interplay between statistical mechanics and machine learning is 
 - **Ising Machines & BSNs:**  
     These models, derived from the Ising model, provide a framework for both forward and inverse computations, with applications in classification, generative modeling, and combinatorial optimization.
     
+---
 
-This comprehensive exploration integrates lecture notes and detailed mathematical derivations to clarify how the principles of statistical mechanics underpin modern machine learning techniques.
+## 8. Boltzmann Machines: Learning via Log-Likelihood and Contrastive Divergence
+
+### 8.1 Log-Likelihood Formulation
+
+Given a Boltzmann machine with energy function:
+
+$$
+E(\mathbf{m}) = - \sum_{i,j} J_{ij} m_i m_j - \sum_i h_i m_i
+$$
+
+we define the probability of a configuration $\mathbf{m}$ as:
+
+$$
+P(\mathbf{m}) = \frac{1}{Z} e^{-E(\mathbf{m})}
+$$
+
+where $Z = \sum_{\mathbf{m}} e^{-E(\mathbf{m})}$ is the **partition function**.
+
+For a dataset $\mathcal{D}$, the average log-likelihood is:
+
+$$
+\mathcal{L}(\theta) = \mathbb{E}_{\mathbf{m} \sim \mathcal{D}} [\log P(\mathbf{m}|\theta)] = -\log Z + \sum_{i,j} J_{ij} \langle m_i m_j \rangle_\text{data} + \sum_i h_i \langle m_i \rangle_\text{data}
+$$
+
+Taking derivatives yields the following learning rules:
+
+$$
+\frac{\partial \mathcal{L}}{\partial J_{ij}} = \langle m_i m_j \rangle_\text{data} - \langle m_i m_j \rangle_\text{model}, \quad \frac{\partial \mathcal{L}}{\partial h_i} = \langle m_i \rangle_\text{data} - \langle m_i \rangle_\text{model}
+$$
+
+Training thus involves reducing the difference between observed statistics and model statistics.
+
+### 8.2 Sampling with Gibbs and the Restricted Boltzmann Machine
+
+To address the intractability of the partition function:
+
+- Use **Gibbs sampling** to estimate $\langle m_i m_j \rangle_\text{model}$
+- Use **Contrastive Divergence (CD-k)** to approximate gradients:
+  - Initialize visible units with data
+  - Run $k$ steps of Gibbs sampling
+  - Compute difference of correlations between data and reconstructions
+
+In **Restricted Boltzmann Machines (RBMs)**, the structure is bipartite:
+
+$$
+\frac{\partial \mathcal{L}(v)}{\partial W_{ij}} = \langle h_i v_j \rangle_\text{data} - \langle h_i v_j \rangle_\text{recon}
+$$
+
+## 9. Score-Based Generative Models and Diffusion
+
+### 9.1 From EBMs to Score Matching
+
+Instead of modeling $P(x)$ directly, model its **score**:
+
+$$
+\nabla_x \log P(x)
+$$
+
+This avoids the partition function, since:
+
+$$
+\nabla_x \log P(x) = -\nabla_x E(x) - \nabla_x \log Z \Rightarrow \text{Score is independent of } Z
+$$
+
+We train a model $s_\theta(x)$ to minimize **Fisher divergence**:
+
+$$
+\mathcal{F}(P_\text{data}, s_\theta) = \mathbb{E}_{x \sim P_\text{data}} [ \| \nabla_x \log P(x) - s_\theta(x) \|^2 ]
+$$
+
+### 9.2 Langevin Dynamics
+
+A physics-inspired iterative sampler:
+
+$$
+x^{(t+1)} = x^{(t)} + \eta s_\theta(x^{(t)}) + \sqrt{2\eta} \cdot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
+$$
+
+### 9.3 Diffusion Models as SDEs
+
+We define a forward **diffusion process** that adds noise to $x_0$ over time $t$:
+
+$$
+\mathrm{d}x_t = f(x_t, t) \, \mathrm{d}t + g(t) \, \mathrm{d}W_t
+$$
+
+- Common choice:
+
+$$
+\mathrm{d}x_t = -\frac{1}{2} \beta(t) x_t \, \mathrm{d}t + \sqrt{\beta(t)} \, \mathrm{d}W_t
+$$
+
+This guarantees:
+
+- Mean: $\mathbb{E}[x_t | x_0] = x_0 e^{-\frac{1}{2} \beta(t)}$
+- Variance: $\mathrm{Var}(x_t | x_0) = 1 - e^{-\beta(t)}$
+
+### 9.4 Reversing the Diffusion Process
+
+To sample, we **reverse** the SDE:
+
+$$
+\mathrm{d}\bar{x}_t = [f(x_t, t) - g(t)^2 \nabla_x \log p_t(x_t)] \mathrm{d}t + g(t) \mathrm{d}\bar{W}_t
+$$
+
+Euler-Maruyama discretization:
+
+$$
+x_{t - \Delta t} = x_t + [f(x_t, t) - g^2(t) \cdot s_\theta(x_t, t)] \Delta t + g(t)\sqrt{\Delta t}\epsilon
+$$
+
+We can also use a **predictor-corrector** scheme:
+
+1. Predictor: simulate reverse SDE step
+2. Corrector: denoise via Langevin step
+
+### 9.5 Score-Based Diffusion Models: Summary
+
+- Models the **score** $\nabla_x \log p_t(x)$ via neural network $s_\theta(x, t)$
+- Trained on noisy data with multiple noise scales
+- Inference is performed by reversing an SDE using the learned score
+- Equivalent to DDPM, SMLD, VP-SDE, and more
+
+### 9.6 Mathematical Insight: Ito Calculus
+
+In stochastic calculus, integrals behave differently:
+
+$$
+\int_0^t W(s) \, \mathrm{d}W(s) \neq \frac{1}{2} W(t)^2
+$$
+
+Instead:
+
+$$
+\int_0^t W(s) \, \mathrm{d}W(s) = \frac{1}{2}W(t)^2 - \frac{1}{2}t
+$$
+
+This is due to $\mathrm{d}W_t^2 = \mathrm{d}t$ in Ito calculus, a key difference from classical calculus.
 
 ---
 
-Happy studying and exploring the fascinating world where physics meets machine learning!
+## 10. From Energy Landscapes to Neural Generative Dynamics
+
+- **Boltzmann Machines:** Equilibrium models, sampling via Gibbs or MCMC
+- **Diffusion Models:** Non-equilibrium models, driven by SDEs and score-based learning
+
+Each model encodes a probabilistic data distribution, but differ in parameterization:
+
+- Boltzmann: $P(x) \propto e^{-E(x)}$
+- Diffusion: $x_0 \rightarrow x_t$ via forward SDE, recover $x_0$ by reversing with score estimate
+
+The diffusion paradigm shifts generative modeling from equilibrium sampling to **dynamical transformation**, bringing in deep connections to thermodynamics and stochastic physics.
+
+
