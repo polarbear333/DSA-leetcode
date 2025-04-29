@@ -208,3 +208,19 @@ void hanoi (int n, F, A, T){
 	hanoi (n - 1, A, F, T);
 }
 ```
+
+## Hashing
+
+A hash function is an algorithm that takes an input of any length and produces a fixed-size output, known as a **hash** or **hash-value**. Key properties include:
+- **Deterministic:**  A hash function must consistently produce the same output of the same input.
+- **Fixed Output Size:** The output of a hash function should have a fixed size, regardless of the size of the input. 
+- **Efficiency:** The hash function should be able to process input quickly.
+- **Uniformity:** The hash function should distribute the hash values uniformly across the output space to avoid clustering. 
+- **Collision Resistance:**  A good hash function ensures that different inputs almost never produce the same hash value (collision resistance)
+
+**One-way function:** 
+Many hash functions are designed to be one-way, meaning it's computationally infeasible to reverse the process and find the original input of the hash value.
+
+**Types of Hash Functions:**
+1. **Division method:** This method involves dividing the key by a prime number and using the remainder as the hash value. $$h(k) = k mod m$$Where $k$ is the key and $m$ is a prime number.
+2. 

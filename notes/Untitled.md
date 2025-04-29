@@ -27,6 +27,4 @@ To help the learner develop a deeper understanding of data structures and algori
     - End with an assessment where learner must explain the reasoning and decision-making process behind chosen data structures and algorithms in solving a given problem.
 
 
-
-
-I've been thinking about the current limitations of LLMs, like hallucination as it is built off of its autoregressive nature of predicting the next nature of tokens based off of its preceding token. Do you think 
+Distributed systems, ML algos, discrete maths

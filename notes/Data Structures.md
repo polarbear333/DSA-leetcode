@@ -543,3 +543,200 @@ remove(element):
 		if current.next[i] is not NULL:
             current.next[i].prev[i] = current.prev[i]
 ```
+
+To organize the distribution of heights in a `SkipList`, it involves the `insert` operation. We do so by first using the `find` operation to find where to insert our new element. Then we determine the new node's height. By definition, the new node must have a height of at least 0 (i.e., the 0-th layer). So how many layers higher should we build the new node? To answer this question, we will play a simple coin-flip game: starting at our base height of 0, we flip a coin, where the coin's probability of heads is _p_.  If we flip heads, we increase our height by 1. If we flip tails, we stop playing the game and keep our current height.
+
+```cpp
+insert(element): // inserts element if it doesn't exist in the list 
+current = head layer = head.height 
+toFix = empty list of nodes of length head.height 
+
+// one slot for each layer 
+while layer >= 0: // can't go lower than layer 0 
+	if current.next[layer] is NULL or current.next[layer].key > element: 
+		toFix[layer] = current // we might have to fix a pointer here 
+		layer = layer - 1 // drop one layer if we can't go further 
+	else: 
+		current = current.next[layer] 
+	if current.key == element: // if we found element, return (no duplicates)    
+		return 
+	
+	// if we reached here, we can perform the insertion 
+	newNode = new node containing element, starting with height = 0 
+	while newNode.height < head.height: // can't go higher than head node's height 
+		result = result of coin-flip with probability p of heads 
+		if result is heads: 
+			newNode.height = newNode.height + 1 
+		else: // we have flipped a tails so we should keep the current height 
+			break 
+	
+	// fix pointers 
+	for i from 0 to newNode.height: // fix newNode's outgoing pointers 
+		newNode.next[i] = toFix[i].next[i] 
+		newNode.prev[i] = toFix[i] 
+		
+		// fix newNode's incoming pointers 
+		if newNode.next[i] is not None: 
+			newNode.next[i].prev[i] = newNode 
+		newNode.prev[i].next[i] = newNode
+```
+---
+### Probability of the coin-flip
+
+It turns out that we don't have to do multiple flips of the coin to determine the height of a new node, instead it can be done in a single trial. A coin-flip is a **Bernoulli distribution**, in which we only have two possible outcomes: _success_ and _failure_. We say that _p_ is the probability of _success_, and we say that _q_, which equals 1–_p_, is the probability of _failure_.
+
+What we described above, where we perform multiple coin-flips until we get our first tails, is synonymous to saying "Sample from a Bernoulli distribution until you see the first failure." It turns out that this statement is actually a probability distribution in itself: the **Geometric distribution**.
+
+What we described above, where we perform multiple coin-flips until we get our first tails, is synonymous to saying "Sample from a Bernoulli distribution until you see the first failure." It turns out that this statement is actually a probability distribution in itself: the **Geometric distribution**:
+$$Pr(X=k)=(1−p)^kp$$Where we need $k$ _failures_ (each with probability $1-p$), and then we need one _success_ (with probability $p$).
+
+But wait! We want the number of flips until the first _failure_! Instead we trivially swap the success and failure: $$Pr(X=k)=p^k(1−p)$$
+## Skip List: Average-Case Time Complexity
+
+For a probabilistic data structure like `SkipList` that maintains a sorted sequence of elements in multiple levels of linked lists. Each element is promoted to a higher level with a fixed probability $p \in (0,1)$. The higher the level, the fewer nodes it has.
+
+The performance of operations like `find`, `insert`, and `delete` depends on the number of comparisons we make during traversal, which in turn depends on the height distribution of the nodes.
+
+## Expected Search Cost in a Skip List
+
+We aim to prove that the **expected number of comparisons** required for a `find` operation in a Skip List is:
+$$
+\mathbb{E}[\text{comparisons}] = \frac{1}{p} \log_{\frac{1}{p}} n + \frac{1}{1 - p}
+$$
+and hence the average-case time complexity is $\mathcal{O}(\log n)$.
+
+## Assumptions
+
+- Each node appears at level $i$ with probability $p^{i-1}(1-p)$.
+- The maximum level $L$ is $\mathcal{O}(\log_{1/p} n)$.
+- The number of elements in the list is $n$.
+
+## Structure of the Skip List
+
+Level 0 contains all $n$ elements. Level 1 contains approximately $pn$ elements. Level 2 contains approximately $p^2 n$ elements, and so on. Generally, the number of elements at level $i$ is expected to be $p^i n$.
+
+We only move *horizontally* until we can't go further without overshooting the target, then drop down vertically.
+
+## Expected Number of Comparisons
+
+Let’s compute the expected number of steps taken during the search for a key $k$:
+
+1. At each level, we do a number of horizontal steps.
+2. The expected number of horizontal steps at any level is $\frac{1}{p}$ (this arises from the geometric distribution).
+3. The number of levels is approximately $\log_{1/p} n$.
+
+Thus, the expected number of comparisons is:
+$$
+\mathbb{E}[\text{comparisons}] = \underbrace{\frac{1}{p}}_{\text{per level}} \cdot \underbrace{\log_{1/p} n}_{\text{levels}} = \frac{1}{p} \log_{\frac{1}{p}} n
+$$
+
+## Correction Factor
+
+Additionally, we must account for one final vertical traversal at the end which adds a constant factor. Therefore, we add a constant term for the final level descent:
+$$
+\mathbb{E}[\text{comparisons}] = \frac{1}{p} \log_{\frac{1}{p}} n + \frac{1}{1 - p}
+$$
+
+## Conclusion
+
+Hence, with high probability, the expected cost of a `find` operation in a well-balanced Skip List is:
+$$
+\mathcal{O}\left(\frac{1}{p} \log_{1/p} n\right) = \mathcal{O}(\log n)
+$$
+
+This makes Skip Lists an efficient and elegant alternative to balanced binary search trees, with simpler insertion and deletion logic and good expected performance.
+
+---
+## Circular Arrays
+
+Another implementation of having both perks of `ArrayLists` and `LinkedLists` is the `Circular Arrays`. At the lowest level, it is really just a regular `Array List` with a clever implementation: 
+- Recall that the `Linked List` has a head pointer and a tail pointer:
+- When we want to insert an element to the beginning or end of a linked list, all we do is update a few pointers (constant-time operation)
+- Similar to head and tail pointers, we take our Array List and use head and tail indices, (first element would be element of head index, last element is the element of tail index)
+- As we add to the end of the Circular Array, we can simply increment tail, vice versa for head.
+- As we increment tail, if we go out of bounds (tail becomes equal to size of array), we can simply wrap around index 0. Likewise, as we're decrementing head, if we ever go out of bounds (i.e head becomes -1), we can simply wrap around to the last index of the array (size -1).
+- Similar to `Array List`, elements of `Circular Array` will be contiguous in the backing array.
+
+```cpp
+[][a][b][c][d][e][][]
+1  2  3  4  5  6 7 8
+```
+## Insert front and back for Circular Arrays
+
+```cpp
+insertFront(element): // inserts element at the front of the Circular Array // check array size 
+if n == array.length: 
+	newArray = empty array of length 2*array.length 
+	for i from 0 to n-1: // copy all elements from array to newArray 
+		newArray[i] = array[(head+i)%array.length] 
+	array = newArray // replace array with newArray 
+	head = 0 // fix head and tail indices 
+	tail = n-1 
+	
+	// insertion algorithm 
+	head = head - 1 // decrement head index 
+	if head == -1: // if we went out of bounds, wrap around 
+		head = array.length-1 
+	array[head] = element // perform insertion 
+	n = n + 1 // increment size
+```
+```cpp
+insertBack(element): // inserts element at the back of the Circular Array \
+// check array size 
+	if n == array.length: 
+		newArray = empty array of length 2*array.length 
+		for i from 0 to n-1: // copy all elements from array to newArray 
+			newArray[i] = array[(head+i)%array.length]
+		 array = newArray // replace array with newArray 
+		 head = 0 // fix head and tail indices 
+		 tail = n-1
+		 
+		  // insertion algorithm 
+		  tail = tail + 1 // increment tail index 
+		  if tail == array.length: // if we went out of bounds, wrap around
+				 tail = 0 
+		  array[tail] = element // perform insertion 
+		  n = n + 1 // increment size
+```
+**STOP and Think:** How could we generalize this idea to allow for insertion into the middle of the **Circular Array**?
+
+**ANS:** Generalize by `head + index` and `tail - index` and wrap around, `index` is the 'middle' we want to insert to, and depending on whether we want to insert from the back or the front.
+
+### Removal at the front or back
+
+Removal at the front or back of a **Circular Array** is fairly trivial. To remove from the front of a **Circular Array**, simply "erase" the element at the _head_ index (e.g. by setting it to a null value), and then increment the _head_ index (wrapping around, if need be). To remove from the back of a **Circular Array**, simply "erase" the element at the _tail_ index, and then decrement the _tail_ index (wrapping around, if need be).
+
+```cpp
+removeFront(): //removes element at the front of the Circular Array
+	erase array[head]
+	head = head + 1
+	if head == array.length:
+		head = 0
+	n = n - 1
+
+removeBack():
+	erase array[tail]
+	tail = tail - 1
+	if tail == -1:
+		tail = array.length - 1
+	n = n - 1
+```
+**STOP and Think:** Is it necessary for us to perform the "erase" steps in these algorithms? What would happen if we didn't?
+
+**ANS:** If we don't perform the "erase" steps, they will still exist in the arrays, and will be just replaced by the new ones in future insertions, so its all fine
+
+---
+### Accessing element at index(i) for Circular Arrays
+
+So far, we've only looked at adding or removing elements from the front or back of a **Circular Array**. With a **Circular Array**, the backing structure is an **Array List**, meaning we have random access to any element given that we know which index of the backing array we need to query. If we want to access the element of a **Circular Array** at index _i_, where _i_ is with respect to the _head_ index (i.e., _head_ is _i_ = 0, irrespective of what index it is in the backing array), we can simply access the element at index **(**_**head**_ **+** _**i**_**) %** _**array.length**_ in the backing array.  By modding by the backing array's length, we ensure that the index we get from the operation (_head_ + _i_) wraps around to a valid index if it exceeds the boundaries of the array. For example:
+- We have a `Circular Array` with total of `8` elements, head to be $i=0$.
+- Accessing the element at $i=2$ of our list is at index $(7+2) \% 8 = 9 \% 8 = 1$ of the backing array.
+- 
+**STOP and Think:** Under what condition(s) would we be safe to omit the mod operation in the formula above? In other words, under what condition(s) would the formula _head_ + _i_ be valid?
+
+**ANS:** Since we wrap around to avoid going out of bounds of the backing array, I'm thinking there are 2 different conditions we won't need to wrap around:
+1. When the head index = index 0 of backing array (this way, valid indices are all in bounds of backing array)
+
+2. When the index (head +i) is less than the size of the backing array (bc valid indices are still within bounds here as well)
+
+

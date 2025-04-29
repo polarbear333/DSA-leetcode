@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Data Structures.md",
+                "file": "Distributed Systems/Memory Management & Optimization.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Data Structures"
+              "title": "Memory Management & Optimization"
             }
           },
           {
@@ -27,16 +27,15 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Data Structures.md",
+                "file": "ML & AI/ML Theory.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Data Structures"
+              "title": "ML Theory"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -49,19 +48,6 @@
         "id": "5050a44d100470a6",
         "type": "tabs",
         "children": [
-          {
-            "id": "e0383695fa0dc720",
-            "type": "leaf",
-            "state": {
-              "type": "file-explorer",
-              "state": {
-                "sortOrder": "alphabetical",
-                "autoReveal": false
-              },
-              "icon": "lucide-folder-closed",
-              "title": "Files"
-            }
-          },
           {
             "id": "fc838db0f547daa8",
             "type": "leaf",
@@ -88,12 +74,27 @@
               "icon": "lucide-bookmark",
               "title": "Bookmarks"
             }
+          },
+          {
+            "id": "e0383695fa0dc720",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "horizontal",
-    "width": 204.5
+    "width": 204.5,
+    "collapsed": true
   },
   "right": {
     "id": "85a2ff7a15edda8f",
@@ -183,14 +184,19 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "9342124468466cdb",
+  "active": "ac516c76793a79a5",
   "lastOpenFiles": [
-    "Practice Problems.md",
-    "Data Structures.md",
-    "C++ Notes.md",
+    "Distributed Systems/Data Serialization Formats.md",
+    "Distributed Systems/Memory Management & Optimization.md",
     "Algorithms.md",
-    "CMPTG 5.md",
+    "Distributed Systems",
+    "Data Structures.md",
+    "ML & AI/ML Theory.md",
+    "Practice Problems.md",
+    "Math & Theory",
     "Untitled.md",
+    "ML & AI/CMPTG 5.md",
+    "C++ Notes.md",
     "Object Oriented Programming.md",
     "ML AI Topics.md",
     "ML & AI",
