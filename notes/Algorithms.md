@@ -1,4 +1,4 @@
-
+****
 # Randomized Algorithms
 The phenomenon of _randomness_ has had numerous applications throughout history, including being used in dice games, coin-flips, shuffling cards etc.
 
@@ -221,6 +221,59 @@ A hash function is an algorithm that takes an input of any length and produces a
 **One-way function:** 
 Many hash functions are designed to be one-way, meaning it's computationally infeasible to reverse the process and find the original input of the hash value.
 
-**Types of Hash Functions:**
-1. **Division method:** This method involves dividing the key by a prime number and using the remainder as the hash value. $$h(k) = k mod m$$Where $k$ is the key and $m$ is a prime number.
-2. 
+**Hash Functions:**
+A **hash function** is a mapping:
+$$h: U \rightarrow \{0, 1, ..., m - 1\}$$
+Where:
+- $U$ is the universe of possible keys (possibly infinite or very large),
+- $m$ is the size of the hash table (often a prime or power of two).
+
+**Definition:**
+Let $U$ be the universe of keys (e.g., all strings), and let $m \in \mathbb{N}$ be the number of buckets.
+A hash function $h: U \rightarrow \{0, 1, \dots, m - 1\}$ satisfies:
+
+- **Determinism**: For all $k \in U$, $h(k)$ always returns the same result.
+- **Compression**: It maps a large input space to a smaller range.
+- **Uniformity**: Ideally, each slot in the hash table is equally likely to be the output. 
+- **Neither surjective nor injective:** Hash functions can map multiple inputs to the same output to cause collision, and may not produce every possible outputs in the hash range.
+
+**Types of hash functions:**
+1. **Division method:** This method involves dividing the key by a prime number and using the remainder as the hash value. $$h(k)=kmodm$$Where $k$ is the key and $m$ is a prime number.
+
+Simple but sensitive to $m$. Best to pick $m$ as a **prime number** not close to a power of 2 to avoid patterns in input.
+
+2. **Multiplication Method (Knuth’s):** Knuth multiplicative hash is used to compute an hash value in $\{0, 1, 2, ..., 2^{p} -1\}$ from an integer $k$: $$h(k)=⌊m⋅(k\alpha mod1)⌋$$
+	- $\alpha$ is a constant in $(0, 1)$ — often $\alpha = \frac{\sqrt{5}-1}{2} \approx 0.618033$
+	- More robust to patterns in $k$, useful when $m$ is a power of $2$.
+
+	**How algorithm works:**
+	Suppose that $p$ is in between 0 and 32, the algorithm goes like this:
+		- Compute alpha as the closest integer to $2^{32} \frac{(-1 + \sqrt(5))}{2}$. We get $\alpha = 2,654,435,769$.
+		- Compute $k * \alpha$ and reduce the result modulo $2^{32}$:
+	    $$k * \alpha = n_0 * 2^{32} + n_1 \text{ with } 0 <= n_1 < 2^{32}$$
+		- Keep the highest $p$ bits of $n_1$:
+$$n_1 = m_1 * 2^{(32-p)} + m_2 \text{ with } 0 <= m_2 < 2^{(32 - p)}$$
+	**Implementation:**
+	```cpp
+	std::uint32_t knuth(int x, int p) {
+	    assert(p >= 0 && p <=32);
+	
+	    const std::uint32_t knuth = 2654435769;
+	    const std::uint32_t y = x;
+	    return (y * knuth) >> (32 - p);
+	}
+	```
+	Forgetting to shift by $(32-p)$ is a major mistake, as you would lose all the properties of the hash. It would transform an even sequence into an even sequence which would be very bad as all the odd slots would stay unoccupied. Bare in mind that most hash tables implementations don't allow this kind of signature in their interface, as they only allow:
+	```cpp
+	uint_32t hash(int x)
+	```
+	and reduce `hash(x)` modulo $2^{p}$ to compute the hash value for x. Those hash tables cannot accept the Knuth multiplicative hash. This might be a reason why so many people completely ruined the algorithm by forgetting to take the higher p bits. So you can't use the Knuth multiplicative hash with `std::unordered_map` or `std::unordered_set`. But I think that those hash tables use a prime number as a size, so the Knuth multiplicative hash is not useful in this case. Using `hash(x) = x` would be a good fit for those tables.
+
+3. **Universal Hashing:**
+	Let $\mathcal{H}$ be a set of hash functions:
+	- A family $\mathcal{H}$ is **universal** if: $$\Pr_{h \in \mathcal{H}}[h(x) = h(y)] \leq \frac{1}{m} \quad \text{for all } x \neq y$$
+	- Used to randomize choice of hash function to reduce worst-case behavior.
+
+**Handling Collisions:** In hashing, a collision occurs when we have multiple elements that have the same index in our array. There are two common methods to deal with collisions in hash tables:
+1. **Linear Probing:** Store the colliding keys elsewhere in the array, potentially in the next open array space. This method can be seen with distributed hash tables, which you will see in later computer science courses that you may take.
+2. **External Chaining:** A simpler solution is to store all the keys with the same hash value together in a collection of their own, such as a `LinkedList`. This collection of entries sharing a single index is called a **bucket**.

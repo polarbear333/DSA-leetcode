@@ -740,3 +740,174 @@ So far, we've only looked at adding or removing elements from the front or back 
 2. When the index (head +i) is less than the size of the backing array (bc valid indices are still within bounds here as well)
 
 
+
+
+## Hash tables
+
+So far we have implemented a few data structures that effectively search for the existence of items within the data structure, we've looked at `Array List`, `Linked List`, `Randomized Search Tree`, `Skip List` and`Binary Search Tree`, then analyzed their time complexities in order to describe their performance:
+- In an unsorted `Array List` and `Linked List`, the worst-case time complexity to find an element is $O(N)$.
+- In a Randomized Search tree and a well-structured `Skip List`, the average-case time complexity to find an element is $O(log(N))$.
+- In a sorted `Array List` and a balanced `Binary Search Tree`, the worst- case time complexity to find an element is $O(log(N))$.
+
+However, there are limitations that these structures impose (even `2-3 trees`.)
+1. They require that items be comparable. How do u decide where a new item goes in a BST? You have to answer the question "are you smaller or bigger than the root"? For some objects, this question may make no sense.
+2. They give a complexity of $O(log(N))$. Is this good? Absolutely, but we may do better. With an array, if we knew the specific index we wanted to access, we could theoretically access our element of interest in $O(1)$ time. Formally, if we were looking for a key $k$ in an array $a$ **and**﻿ if we had a way of knowing that key $k$ would be at index $i$, we could find $k$ with a single $O(1)$ array access operation: $a[i]$.
+
+**Using Data as Indices:** Since arrays have amazing runtime for its basic operations, there might be a good way to convert data into indices and store them in an array. We will trying improving complexity from $O(log(N))$ to $O(1)$. Let's not worry about comparability here, we are going to only consider storing and searching for integers.
+
+Here's an idea: let's create an `ArrayList` of type `boolean` and size 2 billion, everything else is default.
+- The `add(int x)` method simply sets the `x` position in our `ArrayList` to true. This takes `O(1)` time.
+- The `contains(int x)` method simply returns whether the `x` position in our `ArrayList` is `true` or `false`. This also takes $O(1)$ time.
+
+```java
+public class DataIndexedIntegerSet{
+	private boolean[] present;
+
+	public DataIndexedIntegerset(){
+		present = new boolean[2000000000];
+	}
+
+	public void add(int x){
+		present[i] = true;
+	}
+
+	public boolean contains(int x){
+		return present[i];
+	}
+}
+```
+What are some potential issues with this approach? It turns out that this is extremely wasteful. If we assume that a `boolean` takes 1 byte to store, the above needs `2GB` of space per `new DataIndexedIntegerSet()`. Moreover, the user may only insert a handful of items. Also what if someone wants to insert a `String` or other data types?
+
+**A second approach:** Our `DataIndexedIntegerSet` only allows integers, but now we want to insert `String "cat"` into it. We'll call our data structure that can insert strings `DataIntexedEnglishWordSet`. The idea is: let's give every string a number, maybe "cat" can be `1`, "dog" can be `2`, "turtle" can be `3`.
+
+The way this would work is - if someone wanted to add a "cat" to our data structure, we would 'figure out' that the number for "cat" is 1, and then set `present[1]` to be true. If someone wanted to ask us if "cat" is in our data structure, we would 'figure out' that the "cat" is 1, and check if `present[1]` is true.
+
+But then if someone tries to insert the word "potatocactus", we don't know what to do. We need to develop a general strategy so that given a string, we can figure out a number representation for it.
+
+Here are the two main strategies we chose to use:
+
+**Strategy 1: Use the first letter.** A simple idea is to just use the first character of any given string to convert it to its number representation. However, if someone tried to insert two words with the same first letter, we have a **collision**, which we deal with using the next strategy. 
+
+**Strategy 2: Avoid Collisions:** There are $26$ unique characters in the English lowercase alphabet. We assign each one a number: $a = 1, b = 2, ..., z = 26$. Now we can write any unique lowercase string in **base 26**. (Note that **base 26** simply means that we will use **26** as the multiplier, much like we used 10 and 2 as examples above.) 
+- For example, "cat" = $3 * 26^{2} + 1 * 26^{1} + 20 * 26^{0}$
+
+This representation gives a unique integer to every English word containing lowercase letters, much like using base 10 gives a unique representation to every number. We are guaranteed to not have collisions.
+
+But only using lowercase letters is to restrictive, what if we want to store strings like '2pac' or 'eGg!'? Turns out we can use a character format called `ASCII`, which has an integer per character, and the base we will use is `126`.
+
+```java
+public static int asciiToInt(String s){
+	int intRep = 0;
+	for(int i=0; i < s.length(); i++){
+		intRep = intRep * 126;
+		intRep = intRep + s.charAt(i);
+	}
+	return intRep;
+}
+```
+What about adding support for Chinese? The largest possible representation is 40959, so we need to use that as the base. So... to store a 3-character Chinese word, we need an array of size larger than **39 trillion** (with a T)!. This is getting out of hand... , and Java's maximum int size is about $2^{32}$, with a base of $126$, we will run into overflow even for short strings. Overflow can result in **collisions**, causing incorrect answers due.
+
+so let's explore what we can do to improve this, namely, using `hashCode`.
+
+---
+We face the problem that not every object in Java can be easily converted to a number, however the idea behind hashing is the **transformation of any object into a numeric representation**. They key is to have a **hashing function** [[Algorithms#Hashing]] transform our keys into different values, and convert that number into an index to then access the array.
+
+We achieve this through our own implementation of a `hashCode()` function, with a return value of an `int` type. This `int` type is our hash value. The built-in String class in Java might have the following code block:
+
+```java
+public class String{
+	private int hashCode(){
+		//implementation here
+	}
+}
+```
+
+**Hash Code:** A hash code "projects a value from a set with many(or even an infinite number of) members to a value from a set with fixed number of (fewer) numbers." Here our target set is the set of Java integers, which is a size of $4294967296$.
+
+The **Pigeonhole principle** tells us that if there are more than $4294967296$ possible items, multiple items will share the same hash code.
+- There are more than $4294967296$ planets.
+	- Each has `mass`, `xPos`, `yPos`,`xVel`, etc
+- There are more than $4294967296$ strings.
+	- "one", "two", ... "nineteen quadrillion", ...
+Hence, collisions are inevitable.
+
+**Memory Inefficiency in Hash Codes:**  
+An issue mentioned earlier is memory inefficiency: for a small range of hash values, we can get away with an array that individuates each hash value. That is, every index in the array would represent a unique hash value. This works well if our indices are small and close to zero. But remember that Java’s 32-bit integer type can support numbers anywhere between -2,147,483,648 and 2,147,483,647. Now, most of the time, our data won’t use anywhere near that many values. But even if we only wanted to support special characters, our array would still need to be 1,112,064 elements long!
+
+Instead, we'll slightly modify our indexing strategy. Let's say we only want to support an array of length 10 so as to avoid allocating excessive amounts of memory. How can we turn a number that is potentially millions or billions large into a value between 0 and 9, inclusive?
+
+**Handling Large number of members with Modulo Operator:** 
+Since the size of array (buckets) is usually smaller than the number of possible hash codes, we can use the modulo operation (`index = hash% capcacity`) to map a hash code to an index, which can result in multiple keys sharing the same index. Here we want to be able to convert any number to a value between 0 and 9, inclusive. Given our discussion on the modulo operator, we can see that any number mod 10 will return an integer between 0 and 9. This what we need to index an array of size 10. To locate the index for any key:
+```java
+Math.floorMod(key.hashCode(), array.length)
+```
+where `array` is the underlying array representing our hash table.
+
+_Quick Note_: In Java, the `Math.floorMod` function will perform the modulus operation while correctly accounting for negative integers, whereas `%` does not.
+
+**Properties of unique HashCode:**
+1. **Deterministic:** The `hashCode()` function of two objects A and B who are equal to each other (`A.equals(B) == true`) have the same hashcode. This also means the hash function cannot rely on attributes of the object that are not reflected in the `.equals()` method.
+2. **Consistent:** The `hashCode()` function returns the same integer every time it is called on the same instance of an object. This means the `hashCode()` function returns the same integer every time it is called on the same instance of an object. This means the `hashCode()` function must be independent of time/ stopwatches, random number generators, or any methods that would not give us a consistent `hashCode()` across multiple `hashCode()` functions call on the same object instance.
+
+Note that there are no requirements that state that unequal objects should have different hash function values.
+
+One could argue that these two requirements are in fact the same requirement. We can restate the requirement of consistency. Imagine we make a pointer named `A` to an object `0` at 12:00 pm and a pointer named `B` to this same object `0` at 1:00 pm. We know that the hash code should return the same integer for both objects, due to the consistency requirement. However, how do we formally define our statement "this same object `0`" above? Technically, the only reason we consider `B` to be pointing to the same thing as `A` is because of the `.equals()` method! This is starting to sound a lot like the determinism requirement. 
+
+**Implementation of Java's HashCode:**
+
+```java
+@Override
+public int hashCode(){
+	int h = cachedHashValue;
+	if(h == 0 && this.length() > 0){
+		for(int i = 0; i < this.length(); i++){
+			h = 31 * h +this.charAt(i);
+		}
+		cachedHashValue = h;
+	}
+	return h;
+}
+```
+As we can see, the strings are represented as a base of $31$, we use a small base here since real hash codes don't care about uniqueness. The calculated hash values are being stored / cached, such that future `hashCode` calls are faster. A mathematical representation for the `hashCode()`:
+$$ h(s) = s_0 \times 31^{n-1} + s_1 \times 31^{n-2} + ... + s_{n-1}$$
+**Why not base of 126?**
+The reason why we would use a base of $32$ instead is because the larger intermediate values caused by a higher base can lead to major collisions and overflow. Using a base of 126, we have a large value for each character, and when we multiply these values by power of the base, the intermediate results becomes large very quickly. As we mentioned before, integer data types in Java are typically 32-bit for `int`, 64 bit for `long`. Using a base of 126 makes our final hash code very likely to exceed these limits, and leads to a loss of original value and magnitude as it overflows. For instance: $126^{32} = 126^{33} = 126^{34}$, any strings that end up in the same 32 characters are the same, as the upper characters are all multiplied by 0.
+
+$31$ is a rather small prime number, and using a prime number as the base helps in better distributing the hash codes and reducing the likelihood of patterns in the input string leading to collisions. For instance, choosing a base of `10` in decimal or `16` in hex as modulus shows a clear pattern of hash value distribution: 
+- $11 \% 10 \rightarrow 1$, $21 \% 10 \rightarrow 1$ , values with same last digits will collide.
+But using a prime as modulus, the only pattern is that the multiple of the modulus will always hash into 0, otherwise hash values distribution are evenly spread in a **uniform distribution**.
+Also randomizing collisions, it leads to faster retrieval times (collisions require more operation to find the correct data), preventing collision attacks, and helps with integrity check.
+
+**Hashing a Collection:** Turns out lists are a lot like strings, where they are collections of items each with its own `hashCode`:
+
+```java
+@Override 
+public int hashCode(){
+	int hashCode = 1;
+	for(Object o: this){
+		hashCode = hashCode * 31; //elevate/smear the current hashCode;
+		hashCode = hashCode + o.hashCode(); //add new item's hashCode;
+	}
+	return hashCode;
+}
+```
+**Hashing a recursive data structure:** Computing the `hashCode` of a recursive data structures involves recursive computation, for instance a binary tree `hashCode` (assuming sentinel leaves):
+```java
+@Override
+public int hashCode(){
+	if(this.value == null){
+		return 0;
+	}
+	return this.hashCode() + 31 * this.left.hashCode() + 
+	31 * 31 * this.right.hashCode();
+
+}
+```
+
+**Ideal HashCode:**
+1. The `hashCode()` function must be valid.
+2. The `hashCode()` function values should be spread as uniformly as possible over the set of all integers.
+3. The `hashCode()` function should be relatively quick to compute [ideally O(1) constant time mathematical operations]
+
+---
+
