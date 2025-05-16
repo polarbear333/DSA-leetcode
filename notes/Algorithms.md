@@ -17,147 +17,119 @@ While we used the vague term _randomness_ above, but we can be more concrete an
 Even with **Randomized Algorithms** and **Randomized Data Structures**, any applied randomness can be broken down into randomly generating numbers.
 
 ---
-##  True vs. Pseudo Random Number Generation
 
-### 🎲 What is True Randomness?
+## Random Number Generation
+Randomness underpins a wide range of algorithms and data structures, from Monte Carlo simulations to randomized hashing schemes. This section provides a rigorous account of how random numbers are generated, classified, and transformed into non-uniform distributions.
 
-- **True random numbers** are generated from physical phenomena that are inherently unpredictable (high entropy).
+### 1. True Randomness
+**Definition.** A _true random number_ is sampled from a physical process whose outcome is fundamentally unpredictable (i.e., possesses high entropy).
+
+**Properties:**
+1. **Entropy Source:** Physical phenomena (e.g., thermal noise, atmospheric noise, quantum phenomena) supply entropy.  
+2. **Blocking Behavior:** Collection of sufficient entropy may require waiting on hardware sensors, resulting in latency.  
+3. **Unpredictability Guarantee:** Given identical system conditions, successive draws remain non-repeatable and non-deterministic.
+
+**Use Cases:** Secure key generation, cryptographic nonces, high-assurance randomness for protocols.
+
+### 2. Pseudo-Random Number Generation (PRNG)
+**Definition.** A _pseudo-random number generator_ is a deterministic algorithm $G$ that, given an initial seed $s_0\in\mathcal S$, produces a sequence $\{s_n\}_{n\ge0}$ and outputs values $\{r_n\}$ that approximate samples from a uniform distribution.
+
+Formally,
+$$
+s_{n+1} = f(s_n),\quad
+r_n = h(s_n),
+$$
+where $f:\mathcal S\to\mathcal S$ is the state transition, and $h:\mathcal S\to [0,1]$ maps state to a real in $[0,1]$.
+
+**Characteristics:**
+- **Periodicity:** Sequence repeats after period $T\le|\mathcal S|$.  
+- **Reproducibility:** Identical seed $\Rightarrow$ identical sequence.  
+- **Speed:** Algorithmic, non-blocking; suitable for high-throughput simulations.
+
+**Example: Linear Congruential Generator (LCG)**
+$$
+s_{n+1} = (a\,s_n + c)\bmod m,\quad
+r_n = \frac{s_n}{m},
+$$
+
+with constants $a,c,m$. Guarantees period $m$ under standard parameter choices.
+
+### 3. Hybrid Random Number Generation
+
+**Motivation:** Leverage true entropy to seed fast PRNGs, combining unpredictability with throughput.
+
+**Procedure:**
+
+1. Obtain a single true random sample $s^*$ from a hardware RNG.
+2. Initialize PRNG: $s_0 \leftarrow s^*$.
+3. Generate $\{r_n\}$ via the PRNG recurrence.
     
-- Common physical sources of randomness include:
+**Benefits:**
+- _Single Entropy Draw:_ Only the initial seed requires a physical measurement.
+- _Efficiency:_ Subsequent draws incur only algorithmic cost.
+- _Security:_ Seed unpredictability ensures sequence cannot be predicted without s∗s^*.
     
-    - Atmospheric noise
-        
-    - Thermal noise
-        
-    - Quantum effects
-        
-- These sources introduce **natural entropy** (disorder) into the system.
-    
+### 4. Random Number Generation in C++
 
-### Why is True Randomness Slow?
+C++ standard library provides `<random>` since C++11.
+**Uniform Engine:** e.g., `std::mt19937`
 
-- Entropy harvesting is limited by the **speed of physical measurement**.
-    
-- This process is **blocking** — the system must wait until enough entropy is collected.
-    
-- As a result, **true random number generation is slow** compared to modern processor speeds.
-    
+```cpp
+#include <random>
 
----
+std::random_device rd;                         // True entropy source (if available)
+std::mt19937     gen(rd());                    // Mersenne Twister seeded by rd()
+std::uniform_int_distribution<int> dist(1, 6); // Uniform integers in [1,6]
+int roll = dist(gen);                          // Sample roll of a die
+```
 
-### Pseudo-Random Number Generation (PRNG)
+**Distributions:** Any engine can be coupled with distribution objects:
 
-- **Pseudo-random numbers** are generated algorithmically using a starting value called a **seed**.
-    
-- Given the same seed, the PRNG will always produce the **same sequence** of numbers.
-    
-- PRNGs appear random, but are actually **fully deterministic**.
-    
+- `std::uniform_real_distribution<T>`
+- `std::normal_distribution<T>`
+- `std::exponential_distribution<T>`
+- etc.
 
-#### Example:
-
-> Seed: `42`  
-> → Generates a sequence of numbers that looks random.  
-> → Reseeding with `42` will regenerate the **same sequence** every time.
-
-### 🚀 Speed Advantage
-
-- PRNGs are **much faster** than true RNGs.
-    
-- Not bound by physical limits, they are ideal for simulations, games, and non-cryptographic applications.
-    
-
-## 🔁 Hybrid Random Number Generation (True + Pseudo)
-
-### ⚡ Combining Both Approaches
-
-- We can seed a **pseudo-random number generator (PRNG)** using a **true random number**.
-    
-- This provides both:
-    
-    - Speed (thanks to PRNG)
-        
-    - Unpredictability (thanks to true entropy)
-        
-- This hybrid method is practical for many real-world applications.
-    
-
-### 🧊 Example: Thermal Noise as True Random Seed
-
-1. Measure a physical source of randomness (e.g., thermal noise).
-    
-2. Use this to seed the PRNG.
-    
-3. Each execution produces a different sequence of numbers since the seed changes.
-    
-
-> 📌 Only one true random number is needed to seed the PRNG, making this method efficient and non-blocking.
-
----
-
-## 🎲 Random Number Generation in C++
-
-### 🔢 `rand()` and `srand()`
-
-- `rand()` generates a random number in `[0, RAND_MAX]`.
-    
-- `srand()` is used to seed the random number generator.
-    
+**Legacy API (`<cstdlib>`):**
 
 ```cpp
 #include <cstdlib>
 #include <ctime>
 
-srand(time(NULL));   // seed random number generator using system time
-int number = rand(); // generate random number from 0 through RAND_MAX
+srand(static_cast<unsigned>(time(nullptr)));
+int r = rand();          // 0 ≤ r ≤ RAND_MAX
+int uniform = r % N;     // [0, N-1] (bias if RAND_MAX+1 is not multiple of N)
 ```
 
-### 🎚️ Custom Ranges Using Modulo
+### 5. From Uniform to Non-Uniform Distributions
 
-Generate a number from 0 to 99:
+Given access to i.i.d. samples $U\sim\mathrm{Uniform}(0,1)$, one may generate arbitrary target distributions FF via the _inversion method_:
 
-```cpp
-int number = rand() % 100; // outputs 0-99
-```
+**Theorem (Inversion).** If $F$ is a continuous CDF on $\mathbb R$, then
+$$X = F^{-1}(U)$$
+has distribution $F$.
 
-Generate a number from 1 to 100:
+**Examples:**
+- **Exponential ($\lambda>0$):**
+    
+    $$X = -\tfrac1\lambda \ln(1-U),\quad U\sim\mathrm{Uniform}(0,1)$$
+- **Gaussian ($\mu,\,\sigma^2$):** Box–Muller transform
+    
+    $$ Z_1 = \sqrt{-2\ln U_1}\cos(2\pi U_2),\quad Z_2 = \sqrt{-2\ln U_1}\sin(2\pi U_2),$$
+    with each $Z_i\sim N(0,1)$.
+    
+**Rejection Sampling:** When $F^{-1}$ is unavailable:
 
-```cpp
-int number = (rand() % 100) + 1; // outputs 1-100
-```
-
-### 📦 Sampling from a Vector
-
-```cpp
-#include <vector>
-#include <string>
-using namespace std;
-
-vector<string> myVec;
-// populate myVec
-int index = rand() % myVec.size(); // random index
-string element = myVec[index];    // retrieve element
-```
-
+1. Sample $Y$ from proposal $g(y)$ with known envelope constant $M$ such that $f(y)\le M g(y)$.
+2. Accept $Y$ with probability $\tfrac{f(Y)}{M g(Y)}$; otherwise reject and repeat.
 ---
 
-## 📊 Beyond Uniform Distributions
+### Beyond Uniform Distributions:
 
-- The examples above are all **Uniform Distribution** (equal probability).
-    
-- With more techniques, we can sample from:
-    
-    - Gaussian
-        
-    - Exponential
-        
-    - Poisson
-        
-- These advanced distributions are built upon uniform sampling.
-    
-
-> 🧠 All random sampling can be **reduced to uniform sampling** + transformation.
-
+Once non-uniform samplers are in place, one can build more complex stochastic processes:
+- **Markov Chain Monte Carlo (MCMC):** Construct a Markov chain with stationary distribution $F$.
+- **Stratified & Importance Sampling:** Partition the domain or weight samples to reduce variance.
+- **Correlation & Transformations:** Generate multivariate distributions via copulas or linear transforms.
 ---
 
 # Recursion and Dynamic Programming
@@ -277,3 +249,137 @@ $$n_1 = m_1 * 2^{(32-p)} + m_2 \text{ with } 0 <= m_2 < 2^{(32 - p)}$$
 **Handling Collisions:** In hashing, a collision occurs when we have multiple elements that have the same index in our array. There are two common methods to deal with collisions in hash tables:
 1. **Linear Probing:** Store the colliding keys elsewhere in the array, potentially in the next open array space. This method can be seen with distributed hash tables, which you will see in later computer science courses that you may take.
 2. **External Chaining:** A simpler solution is to store all the keys with the same hash value together in a collection of their own, such as a `LinkedList`. This collection of entries sharing a single index is called a **bucket**.
+
+### <u>3-SAT</u>
+
+The input to 3-SAT consists of a Boolean formula in conjunctive normal form (CNF) with 3 (distinct) variables per clause. For example:
+$$f(x_1, x_2, x_3) = (x_1 \lor x_2 \lor x_3) \land (\overline{x}_1 \lor \overline{x}_2 \lor \overline{x}_3) \land (x_1 \lor \overline{x}_2 \lor x_3) \land (\overline{x}_1 \lor x_2 \lor x_3)$$
+This is a 3-SAT formula with $m=4$ clauses and $n=3$ variables, it is satisfied by the assignment $(x_1,x_2,x_3) = (t,f,t)$. In the 3-SAT problem, we are given a 3-SAT formula $f(x_1,..., x_n)$ with $m$ clauses and $n$ variables and want to find a satisfying assignment.
+
+3-SAT is the quintessential NP-complete search problem, and there is no polynomial time algorithm to solve it unless $P=NP$. However this does not prevent us from _approximate_ the problem. The goal is now to find an assignment that satisfies as many clauses as possible. Of course an exact algorithm for this maximization version implies a polynomial time algorithm for the decision version. Instead we will design algorithms that do not guarantee the maximum, but are competitive up to a multiplicative factor when compared to the optimum solution. 
+
+Given a SAT formula $f$, let $OPT$ denote the maximum number of clauses that are satisfiable. For $\alpha \in [0,1]$, an $\alpha-$approximation algorithm for SAT is an algorithm that produces an assignment that satisfies at least $\alpha$ $OPT$ clauses. While obtaining an exact algorithm is NP-Hard, for fixed $\alpha < 1$, it is not necessarily NP-Hard to obtain an $\alpha$-approximation algorithm for SAT.
+
+**Simple randomization approximation algorithm for SAT:** Given a formula $f(x_1,...,x_n)$, for each variable $x_i$, flip a fair coin and assign $x_i = t$ or $x_i = f$ accordingly. We will show that, on average, this random assignment satisfies at least $(7 / 8)m$ clauses out of $m$ total. Moreover, we will be able to _derandomize_ the above algorithm and obtain a deterministic algorithm that (always) satisfies at least. Here's an pseudocode for the algorithm:
+
+random-SAT$(f(x_1,...,x_n))$:
+1. For each $i \in [n]$, draw $x_i \in {t, f}$ independently and uniformly at random.
+2. Return $x_1,...,x_n$.
+
+Surely, an algorithm as simple as the randomized algorithm above could not be very good. In fact it is the best possible polynomial time algorithm unless P = NP. The PCP theorem states that for all constants ϵ > 0, getting better than a (7/8 + ϵ)- approximation to 3SAT is NP-Hard. “PCP” standards for probabilistically checkable proofs. The PCP theorem gives similar hardness of approximation results for many other problems besides SAT. The PCP theorem (as the name suggests) has strong connections to randomized algorithms.
+
+**Theorem 1.1:** There is a polynomial time algorithm that given any 3-SAT formula computes an assignment that satisfies at least $\frac{7}{8}$th of the clauses. Moreover, for all $\epsilon > 0$, a polynomial time approximation algorithm with approximation ratio $(\frac{7}{8} + \epsilon)$ implies that P=NP.
+
+### <u>Sorting:</u>
+The next problem we will discuss is _sorting_.  The goal is to take an unordered list of $n$ comparable elements (e.g numbers) and return them as a list in sorted order. The reader likely knows that the `merge-sort` algorithm runs in $O(n log n)$, and that there is a $\Omega(n log n)$-time lower bound for any sorting algorithm in the comparison model. Here we will study a randomized algorithm that is remarkably simple, called `quick-sort`, that is often the preferred one in practice. The idea is we select an element _uniformly at random_ out of the list to serve as a _pivot_. Divide the elements into those smaller and larger than the pivot, and recurse on both halves. Here's an pseudocode for `quicksort`:
+
+`quick-sort`$(A[1..n]):$
+// For simplicity, we assume all elements are distinct, otherwise break ties consistently
+1. If $n \leq 1$, then return $A$.
+2. Select $i \in [n]$ uniformly at random. (pivot)
+3. $B[1..k] \leftarrow$ recursively sort the set of elements less than $A[i]$.
+4. $C[1..l] \leftarrow$ recursively sort the elements greater than $A[i]$.
+5. Return the concatenation of $B, A[i], C$.
+
+**Worse-case running time:** 
+Observe that the running time of `quick-sort` is proportional to the total number of comparisons made by the algorithm. It is certainly possible that the algorithm makes $\Omega(n^{2})$ comparisons. (How?) 
+
+In a limited sense that algorithm has a worst-case $O(n^{2})$ time, however the algorithm is randomized, a more useful measure is the _average_ number of comparisons. We will show that `quick-sort` takes $O(nlogn)$ time on average _against any input_. This is still a worst-case analysis in the sense that it holds for all _inputs_. (This is not to be confused with the performance of an algorithm against a randomized input from a fixed distribution — that is called average case analysis.)
+We will also show that the algorithm takes $O(n log n)$ time with extremely high probability. In summary we will prove the following theorem in this chapter.
+
+**Theorem 1.2.** Given a list of $n$ comparable elements, `quick-sort` returns the elements in a sorted list in $O(n log n) expected time with high probability.
+
+### <u>Selection:</u>
+The last problem we mention is selection. The input, similar to sorting, includes an unordered list of n comparable elements. Given an index $k \in [n]$, the goal is to find the $k$th smallest element in the list. 
+
+The obvious solution is to sort the list, which takes $O(nlogn)$ time. But in fact one can do better: the "median-of-medians" divide-and-conquer algorithm, which runs in $O(n)$ time. The algorithm is a bit of tricky and hard to describe. Here's an simpler alternative, which is similar to quick-sort: pick a pivot uniformly at random, and compute its rank $l$. Depending on whether $k=l, k<l, \text{or} \space k>l$ either return the pivot, recurse on the subset of elements less than the pivot, or recurse on the subset greater than the pivot. Here's an pseudocode:
+
+`quick-select`$(A[1..n],k)$
+// The goal is to find the rank $k$ elements in $A[1..n]. We assume for simplicity that all elements are distinct.
+
+1. Randomly select $i \in [n]$ uniformly at random.
+2. Compute the rank $l$ of $A[i]$.
+3. If $l = k$, then return $A[i]$.
+4. If $l>k$, then recursively search for the rank $k$ element among the set of $l-1$ elements less than $A[l]$, and return it.
+5. If $l < k$, then recursively search for the rank $k - l$ element among the set of $n - l$ elements greater than $A[l]$, and return it.
+
+We will prove the following theorem which states that quick-select takes O(n) time in expectation. Or rather, you will prove it, in exercise 1.2, employing the new tools gained from analyzing randomized SAT and sorting.
+
+**Theorem 1.3.** `quick-select`$(A[1..n],k)$ returns the rank $k$ element in $O(n)$ time in expectation and with high probability.
+
+
+
+
+
+---
+Consider this following problem which came up when email services was first implemented, and security was not a thing back then, everybody was using easily breakable passwords like `1234`, and we want to handle this by using a list of unacceptable passwords. The company anticipates that this list will grow remarkably large so we should find a space-efficient way of storing the list. 
+We would also be able to query the storage structure to see if a password is acceptable or not.
+
+This can be formalized into a mathematical setting:
+- We have a huge universe of elements $U = \{0,1,...,N-1\}$, and we want to maintain a subset $S\subset U$, where $|S| = m$. We want to store the subset in some structure $H$ such that $|H| = n = cm$. where $c$ is a constant $>=1$. 
+- The following operations have to be accommodated: insertion of an element into the subset $S$ and for any element $x$ being able to check where $x \in S$. 
+- Deletion isn't considered here. We are willing to accommodate a smaller number of false positive response to our queries, i.e. if $x \notin S$, then we want to answer no, but we are okay with rarely answering the query wrongly.  
+
+In the motivating example, the universe would correspond to the set of all passwords, and the subset would correspond to the set of unacceptable passwords. To complete the analogy, if a password is unacceptable, we want to **GUARANTEE** that it isn't used. So given a password $x$, if $x \in S$, then we always want to reject the password but if $x \notin S$, then we are okay with occasionally making the user pick a new password because the cost is only mild annoyance. However, we want to keep the probability of such false positive low. 
+
+### <u>Bloom FIlters:</u>
+The structure of bloom filters is a simple $0-1$ array $H$ of size $n$, initially all $0$. One of the major assumptions we make is that we are given $k$ hash functions, $h_1,h_2,...,h_k$ that map elements from the universe $U$ to $\{0,1,...,n-1\}$, that they map elements from the universe to indices of $H$. 
+
+We also assume that the hash functions we are given are random and independent of each other. In this context, random means that an element when hashed under a particular function has equal chance of being mapped to any location in $H$. Independent means that this probability does not change even when conditioned on what indices this or any other element is hashed to by any subset of the $k-1$ other hash functions.
+
+**Bloom filter algorithms for operations:** 
+
+---
+**Insertion**:
+input: $x$
+output: the updated $H$ structure, with $x$ inserted
+
+for $i \leftarrow 1$ to $k$ do
+	compute $h_i(x)$
+	Set $H[h_i(x)]$ to $1$ 
+	
+---
+**Query**:
+input: $x$
+output: **YES** or **NO**
+
+Set count to $0$
+for $i \leftarrow 1$ to $k$ do
+	compute $h_i(x)$
+	 if $H[h_i(x)] = 1$ then
+		 Increment count by 1
+if $count=k$ then
+	return **YES**
+return **NO**
+
+---
+Insertion simply computes the hash values for the input element under the different hash functions and makes all the correspond bits 1. Querying simply computes the hash values for the input element and checks if all the corresponding indices are set to 1. IF yes, then it assumes that the bits were set when the element was inserted earlier and say **YES**, else it says **NO**. 
+
+**Bloom Filter Querying Analysis:** An important note is that when $x$ has previously been inserted, all of the corresponding hash bits are set to $1$ and that does not change with any additional insertion or query operations. Hence, if $x \in S$, then the algorithm will always correctly output **YES**. The analysis hence reduces to considering the probability of a false positive. Clearly, false positives are possible; If the insertion of some other elements caused all the bits corresponding to $x$ to be set to 1, then the algorithm will output the wrong result. 
+
+Now, consider the addition of one element $x$. Consider the probability that for a hash, that $x$ is indexed to some index $i$. 
+$$ \forall k: Pr(h_k(x)=i) = \frac{1}{n} \Rightarrow Pr(h_k(x) \neq i) = 1 - \frac{1}{n}$$
+The above equation follows from the fact that we assume that the hash functions are completely random. Now since the hash functions are completely independent of each other, the probability that **NONE** of the hash function is indexed to i can be easily calculated. Note that this is also the probability that the index $H(i)$ is set to $0$ after insertion. 
+$$Pr(H[i] = 0 \space \text{after the first insertion}) = (1-\frac{1}{n})^{k}$$
+Now we assume that the elements are randomly drawn and hence the insertions are independent of each other in terms of the bits they set. Consider that all $m$ insertions are done. Then, the probability that $H[i]$ is $0$, is the probability that $H[i]$ is $0$ after the first insertion multiplied by the probability that $H[i]$ is $0$ after the second insertion and so on. Hence: 
+$$
+Pr(H[i] = 0 \space \text{after all insertions}) = (1-\frac{1}{n})^{mk} 
+$$
+$$ 
+Pr(H[i]=1 \space \text{after all insertions}) = 1-(1-\frac{1}{n})^{mk}= 1-(1-\frac{1}{n})^{nm\frac{k}{n}}\approx 1-e^{-m\frac{k}{n}}
+$$
+Now for a false positive, all the $k$ hashed bits that are corresponded to $x$ have to be set to $1$. Since the hash functions are independent to each other, the probability that the hashed bits are set to $1$ is simply a product of the individual probabilities which can be bounded by: 
+$$Pr(\text{False Positive}) = (1 - e^{\frac{-mk}{n}})^{k} = (1-e^{\frac{-k}{c}})^{k}$$
+where the last equality follows because $n=cm$.
+
+Now we can find the value of $k$ that minimizes the probability of a false positive by simply differentiating the probability with respect to $k$ and setting it to $0$, and then taking the second derivative to check that it is indeed a global minimum.
+Set $f = \left(1 - e^{-k/c}\right)^k$. Now set $g = \log_e(f) = k \log_e\left(1 - e^{-k/c}\right)$.
+
+$$\frac{d}{dk}(g) = \ln\left(1 - e^{-k/c}\right) + \frac{k}{c} \frac{e^{-k/c}}{\left(1 - e^{-k/c}\right)} = 0$$
+Solving the above equation, we get the optimal value for $k$ as $k = cln2$. Taking the second derivative and substituting this value for $k$, we see that the value is $\geq 0$ indicating that this point is indeed a global minimum. Now, going back to the equation for $k$ and substituting:
+$$Pr(\text{False Positive}) = (1-e^{-\frac{k}{c}})^{k} = (1-e^{-ln2})^{cln2} =
+((\frac{1}{2})^{ln2})^{c} = 0.61^{c}$$
+Note that for $c=100$, $Pr(\text{False positive}) = 1.3 \times 10^{-21}$ which is remarkably low.
+
+---
+

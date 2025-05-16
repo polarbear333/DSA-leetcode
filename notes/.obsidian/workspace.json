@@ -4,35 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "1048034f2619b728",
+        "id": "51ff5fd6b3c2ab47",
         "type": "tabs",
         "children": [
           {
-            "id": "9342124468466cdb",
+            "id": "a514ccdb56ba6341",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Algorithms.md",
+                "file": "Data Structures.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Algorithms"
-            }
-          },
-          {
-            "id": "3c3988facf6e92f4",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Distributed Systems/Memory Management & Optimization.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Memory Management & Optimization"
+              "title": "Data Structures"
             }
           }
         ]
@@ -183,15 +169,25 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "9342124468466cdb",
+  "active": "a514ccdb56ba6341",
   "lastOpenFiles": [
-    "Distributed Systems/Memory Management & Optimization.md",
-    "Data Structures.md",
-    "Algorithms.md",
-    "Untitled 1.md",
-    "Object Oriented Programming.md",
-    "Distributed Systems/Memory-Management---Optimization.pdf",
     "ML & AI/ML Theory.md",
+    "Algorithms.md",
+    "Untitled.md",
+    "Practice Problems.md",
+    "Object Oriented Programming.md",
+    "ML AI Topics.md",
+    "ML & AI/CMPTG 5.md",
+    "C++ Notes.md",
+    "Data Structures.md",
+    "Schedules.md",
+    "CMPTG-5.pdf",
+    "Distributed Systems/Memory Management & Optimization.md",
+    "Distributed Systems/Memory-Management---Optimization.pdf",
+    "2025-05-08.md",
+    "Distributed Systems/Case Studies.md",
+    "Pasted image 20250512180906.png",
+    "Pasted image 20250512180902.png",
     "Distributed Systems/Memory-Management---Optimization.aux",
     "Distributed Systems/Memory-Management---Optimization.log",
     "Distributed Systems/Memory-Management---Optimization.tex",
@@ -200,13 +196,7 @@
     "practice questions",
     "Distributed Systems/Data Serialization Formats.md",
     "Distributed Systems",
-    "Practice Problems.md",
     "Math & Theory",
-    "Untitled.md",
-    "ML & AI/CMPTG 5.md",
-    "C++ Notes.md",
-    "ML AI Topics.md",
-    "ML & AI",
     "Welcome.md"
   ]
 }

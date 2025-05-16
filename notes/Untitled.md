@@ -27,4 +27,15 @@ To help the learner develop a deeper understanding of data structures and algori
     - End with an assessment where learner must explain the reasoning and decision-making process behind chosen data structures and algorithms in solving a given problem.
 
 
-Distributed systems, ML algos, discrete maths
+Binary Search 
+DFS and BFS 
+Flood Fill 
+Two pointers 
+Sliding Window 
+Dynamic Programming 
+Union Set 
+Line Sweep 
+Trie 
+Segment Tree 
+Bitmasking 
+Greedy algorithm

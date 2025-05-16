@@ -165,3 +165,66 @@ void remove(Node* head, int index) {
     curr->next = curr->next->next;
 }
 ```
+---
+## LRU Cache
+
+Cache replacement algorithms are designed such that it replaces the cache when the memory is full. An **LRU Cache** is specifically designed to eliminate the **least recently used** part of the data to make room for new data once the memory is full. The priority of the data in the cache changes according to the need of that data:
+- If some data is being fetched, or recently updated, it would be assigned to the **highest priority**.
+- The priority of the data will be decreased if it remains unused operations after operations.
+
+**Data structures to implement the LRU Cache:** 
+1. **Hash Tables:** Hash tables allow **average constant-time operations** for data retrieval, insertion and also deletion by hashing a value into hashCodes (key). However the disadvantage is that hash tables do not maintain the order of data, so using it alone is not viable for managing the cache priority orders.
+2. **Doubly Linked Lists:** Unlike hash tables, a DLL offers us the opportunity to manage the order of data using the `next` and `prev` pointers to navigate through the linked list. Since it uses pointer referencing, insertions and deletions still offers $O(1)$ time-complexity by rearranging the pointer chains. However, it leads to $O(N)$ operations for random access lookup.
+
+**How they complement each others' weakness:**
+1. **Maintaining data insertion order:** As addressed, hash table itself does not have the property of maintaining data order as they are stored irregularly (order cannot be guaranteed) by the hash function. However, we can use linked list to keep track of the usage order, making it straightforward to remove the least recently used item when necessary.
+2. **Constant access lookup:** Linked lists themselves need to be iterated through their list by navigating through pointers to retrieve the data we wanted. However, the key-value pairs (cache) stored in hash tables can be referenced as nodes, where we can retrieve them using hash map instead. This gives us constant $O(1)$ lookup.
+
+## Most Frequent Item:
+
+You are shown a sequence of N positive integers (stored in an array), identify the one that occurs most frequently. Question is mostly asked in big tech companies for retrieving top K frequent items.
+
+**Idea:** Use a hashmap to store the frequency of each element's frequency, then find the element with max frequency. 
+
+```cpp
+int mostFreqItem (vector<int>& arr){
+	unordered_map<int, int> freq;
+	for(int i=0; i < freq.size(), i++){ //insert all elements
+		freq[arr[i]]++;
+	}
+	int maxCount = 0, result = -1;
+	for(auto i : freq){ //iterate through the hashmap
+		int val = i.first, count = i.second;
+		if(maxCount < count || (count == maxCount && val > res)){
+			maxCount = count;
+			result = val;
+		}
+	}
+	return result;
+}
+```
+
+
+**O(1) Space:** We sort the array to have the most frequently appear element, then search for that particular element.
+
+```cpp
+int mostFreqItem (vector<int>& arr){
+	sort(arr.begin(), arr.end());
+
+	int maxCount = 1, result = arr[0], currentCount=1; 
+	for(int i=0; i <arr.size(); i++){
+		if(arr[i] == arr[i-1]){
+			currentCount++;
+		}else{
+			currentCount = 1;
+		}
+		
+		if(currentCount > maxCount && (currentCount == maxCount && arr[i] > result)){
+			maxCount = currentCount;
+			result = arr[i];
+		}
+	}
+	return result;
+}
+```
+
