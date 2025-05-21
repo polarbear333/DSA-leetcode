@@ -228,3 +228,43 @@ int mostFreqItem (vector<int>& arr){
 }
 ```
 
+## Checkerboard DP
+
+You are given a checkerboard with n rows and n columns. This is just a $n \times n$ table $V$. The $(i, j)$ entry of $V$ has value $v(i, j)$ (can be positive or negative). We want to move a checker from the top-left corner (i.e., position $(1, 1)$) to the bottom-right (i.e., position $(n, n)$). The only legal moves are to move a checker down by one square, right by one square, or diagonally down-right by one square. The value of a sequence of moves is the sum of the values of the entries in the sequence. We want the maximum value of any legal sequence of moves. Here is an example of a $3 \times 3$ checkerboard:
+
+|   | 1  | 2  | 3  |
+|---|----|----|----|
+| 1 | 3  | 30 | 12 |
+| 2 | -12| 7  | -9 |
+| 3 | 39 | -2 | 15 |
+The sequence of moves (1, 1) → (1, 2) → (2, 2) → (3, 3) is legal and has total value 3 + 30 + 7 + 15 = 55. Give a dynamic programming algorithm that given the values V determines the maximum value of any legal sequence of moves from (1, 1) to (n, n). You just need to output the total value from the optimal solution. (Faster (and correct) algorithm in O(·) notation is worth more credit.) (a) Define the entries of your table in words. E.g., T(i) is ..., or T(i, j) is ....
+
+### Pseudocode for calculating maximum total value of the sequence:
+
+```
+	// V is the n times n checkerboard with value
+	// n is the number of rows and columns
+	
+	//create a 2d DP array
+	//dp[i][j] will store the maximum value to reach cell (i,j)
+	
+	dp = new Array [1...n][1...n];
+	
+	//base case starting at (1,1):
+	dp[1][1] = V[1][1]; 
+	
+	//Fill the DP table:
+	for(int i=1; i < n; i++){
+		for(int j=1; j < n; i++){
+		if i == 1 & j == 1{
+			continue;
+		}
+		dp[i][j] = V[i][j] + 
+		max({ dp[i-1][j], // from above 
+		dp[i][j-1], // from left 
+		dp[i-1][j-1] // from diagonal 
+		})
+		}
+	}
+	return dp[n][n]
+```

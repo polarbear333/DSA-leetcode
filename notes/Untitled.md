@@ -39,3 +39,14 @@ Trie
 Segment Tree 
 Bitmasking 
 Greedy algorithm
+
+## Resources for studying
+
+- [ ] [[https://github.com/mlabonne/llm-course | LLM Architecture and Fine-Tuning]]
+- [ ] [[ https://blog.algomooc.com/ | Leetcode Roadmap + Blog ]] 
+- [ ] [[https://discrete.openmathbooks.org/dmoi3/ch_intro.html | Discrete Math Textbook]]
+- [ ] [[https://www.cnblogs.com/jingmoxukong/p/12194712.html | Java Concurrent Lock Blog]]
+- [ ] [[https://choward1491.github.io/ | Christian Howard's Blog ]]
+- [ ] [[https://www.cwblogs.com/ | CW Blogs]]
+- [ ] [[https://blog.pragmaticengineer.com/data-structures-and-algorithms-i-actually-used-day-to-day/ | Industry SWE Blogs]]
+- [ ] 

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Data Structures.md",
+                "file": "Math & Theory/Discrete Maths.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Data Structures"
+              "title": "Discrete Maths"
             }
           }
         ]
@@ -79,7 +79,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 204.5
+    "width": 204.5,
+    "collapsed": true
   },
   "right": {
     "id": "85a2ff7a15edda8f",
@@ -171,16 +172,27 @@
   },
   "active": "a514ccdb56ba6341",
   "lastOpenFiles": [
+    "Pasted image 20250521142046.png",
+    "ML AI Topics.md",
+    "Object Oriented Programming.md",
+    "O.md",
+    "Pasted image 20250520152003.png",
+    "Schedules.md",
+    "Untitled.md",
+    "Math & Theory/Discrete Maths.md",
+    "Practice Problems.md",
+    "Pasted image 20250520180610.png",
+    "Pasted image 20250520152033.png",
+    "Pasted image 20250520152053.png",
+    "Pasted image 20250520152046.png",
+    "Pasted image 20250520152034.png",
+    "Pasted image 20250520152024.png",
+    "Leetcode Roadmap + Blog.md",
+    "Data Structures.md",
     "ML & AI/ML Theory.md",
     "Algorithms.md",
-    "Untitled.md",
-    "Practice Problems.md",
-    "Object Oriented Programming.md",
-    "ML AI Topics.md",
     "ML & AI/CMPTG 5.md",
     "C++ Notes.md",
-    "Data Structures.md",
-    "Schedules.md",
     "CMPTG-5.pdf",
     "Distributed Systems/Memory Management & Optimization.md",
     "Distributed Systems/Memory-Management---Optimization.pdf",
